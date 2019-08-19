@@ -11,3 +11,5 @@
 
 # annual size-at-age
 
+
+# params from VB curve or similar?
