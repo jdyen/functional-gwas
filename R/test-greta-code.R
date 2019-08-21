@@ -2,6 +2,11 @@
 #
 # non-functional version
 
+## FUNCTIONAL MODEL:
+# is just MVN prior on regression parameters with hierarchical shrinkage prior
+#   - need to think through coding of SNPs (they separate additive and dominant effets but it seems odd)
+#   - use Stan versions of spike-and-slab approximations
+
 # load packages
 library(greta)
 
