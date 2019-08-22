@@ -1,6 +1,3 @@
-## SPLIT THIS INTO utils.R and fit-gwas.R
-## ADD a univariate version, coupled with the growth metrics script.
-
 # where is everything?
 setwd("~/Dropbox/research/functional-gwas/")
 
@@ -115,12 +112,16 @@ chains <- 4
 n_samples <- 1000
 warmup <- n_samples
 
-# sample from the model
+# set some random initial values
 inits <- lapply(seq_len(chains),
-                function(i) initials(beta_additive = matrix(rnorm(order * n_snp),
-                                                            nrow = n_snp, ncol = order),
-                                     beta_dominant = matrix(rnorm(order * n_snp),
-                                                            nrow = n_snp, ncol = order)))
+                function(i) initials(beta_additive =
+                                       matrix(rnorm(order * n_snp),
+                                              nrow = n_snp, ncol = order),
+                                     beta_dominant =
+                                       matrix(rnorm(order * n_snp),
+                                              nrow = n_snp, ncol = order)))
+
+# sample from model
 draws <- mcmc(mod,
               n_samples = n_samples,
               warmup = warmup,
