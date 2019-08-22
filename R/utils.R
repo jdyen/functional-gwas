@@ -20,6 +20,7 @@ dist_fn <- function(target, remainder) {
   apply(diffs, 1, sq_sum)
 }
 
+# internal function used by impute_from_nearest
 impute_single <- function(i, data) {
   target <- data[i, ]
   remainder <- data[-i, ]
@@ -50,11 +51,6 @@ impute_from_nearest <- function(data) {
 }
 
 # set up an AR1 covariance with parameters rho and sigma
-# abs_diff <- function(x, y) abs(x - y)
-# ar1 <- function(t, rho) {
-#   t_diff <- outer(t, t, FUN = abs_diff)
-#   rho ^ (t_diff)
-# }
 ar1 <- function(t, rho, sigma) {
   
   # matrix of time modifiers
