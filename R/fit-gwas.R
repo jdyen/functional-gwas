@@ -17,11 +17,8 @@ snp_data <- read.csv("data/compiled/gp_fgwas_snps.csv", stringsAsFactors = FALSE
 covariate_data <- read.csv("data/compiled/gp_fgwas_covariates.csv", stringsAsFactors = FALSE)
 genetic_data <- read.csv("data/compiled/gp_fgwas_genetics.csv", stringsAsFactors = FALSE)
 
-# should remove fish with no second increment
-## MOVE TO DATA-PREP SCRIPT
-
 # subset SNP data while testing
-# snp_data <- snp_data[, seq_len(50)]
+snp_data <- snp_data[, seq_len(100)]
 
 # snp_data as a matrix will make distance calcs faster
 snp_data <- as.matrix(snp_data)
@@ -59,13 +56,13 @@ tau_dominant <- gamma(1, 1 / (lambda_dominant), dim = n_snp)
 sigma_main <- normal(0, 1, truncation = c(0, Inf))
 
 # define shrinkage prior on additive SNP effects
-sigma_additive <- sigma_main * rep(tau_additive, each = order)
-dim(sigma_additive) <- c(order, n_snp)
+sigma_additive <- sigma_main * rep(tau_additive, times = order)
+dim(sigma_additive) <- c(n_snp, order)
 beta_additive <- normal(0, sigma_additive)
 
 # repeat for dominant SNP effects
-sigma_dominant <- sigma_main * rep(tau_dominant, each = order)
-dim(sigma_dominant) <- c(order, n_snp)
+sigma_dominant <- sigma_main * rep(tau_dominant, times = order)
+dim(sigma_dominant) <- c(n_snp, order)
 beta_dominant <- normal(0, sigma_dominant)
 
 # define priors for random effects
@@ -87,20 +84,18 @@ eps_ar1 <- ar1(t_vec, rho, sigma_eps)
 
 # define legendre polynomials
 legendre_basis <- legendre_poly(n = degree, x = seq_len(n_time))
+legendre_basis_prime <- t(legendre_basis)
 
 # create some SNP data sets that capture our key processes
 snps_additive <- snp_data - 1
 snps_dominant <- ifelse(snp_data == 1, 1, 0)
 
 # define linear predictor
-
-## CAN WE DEFINE THIS TO AVOID TRANPOSE? RESTRUCTURE COVAR/BASIS?
-
-mu <- x_design %*% t(legendre_basis %*% beta_covariate) +
-  snps_additive %*% t(legendre_basis %*% beta_additive) + 
-  snps_dominant %*% t(legendre_basis %*% beta_dominant) +
+mu <- x_design %*% beta_covariate %*% legendre_basis +
+  snps_additive %*% beta_additive %*% legendre_basis + 
+  snps_dominant %*% beta_dominant %*% legendre_basis +
   gamma_ind[individual, ] + gamma_pop[pop, ]
-mu <- sweep(mu, 2,  legendre_basis %*% alpha, "+")
+mu <- sweep(mu, 2,  legendre_basis_prime %*% alpha, "+")
 mu <- sweep(mu, 2, eps_ar1, "+")
 
 # define final variance prior
@@ -115,14 +110,19 @@ distribution(growth_vec) <- normal(mu_vec, sigma_total)
 # define greta model
 mod <- model(beta_additive, beta_dominant)
 
-# sample from the model
-# inits <- opt(mod)
-# inits <- initials(beta_additive = inits$par$beta_additive,
-#                   beta_dominant = inits$par$beta_dominant)
-inits <- initials(beta_additive = matrix(0, nrow = order, ncol = n_snp),
-                  beta_dominant = matrix(0, nrow = order, ncol = n_snp))
-draws <- mcmc(mod, n_samples = 10000, warmup = 10000,
-              initial_values = inits)
+# give mcmc settings
+chains <- 4
+n_samples <- 1000
+warmup <- n_samples
 
-# plot chains
-bayesplot::mcmc_trace(draws, pars = "beta_dominant[1,1]")
+# sample from the model
+inits <- lapply(seq_len(chains),
+                function(i) initials(beta_additive = matrix(rnorm(order * n_snp),
+                                                            nrow = n_snp, ncol = order),
+                                     beta_dominant = matrix(rnorm(order * n_snp),
+                                                            nrow = n_snp, ncol = order)))
+draws <- mcmc(mod,
+              n_samples = n_samples,
+              warmup = warmup,
+              chains = chains,
+              initial_values = inits)

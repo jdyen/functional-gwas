@@ -83,5 +83,5 @@ legendre_list <- list(function(x) rep(1, length(x)),
                       function(x) 0.375 - 3.75 * (x ^ 2) + 4.375 * (x ^ 4),
                       function(x) 1.875 * x - 8.75 * (x ^ 3) + 7.875 * (x ^ 5))
 legendre_poly <- function(n, x) {
-  sapply(seq_len(n + 1), function(i, x) legendre_list[[i]](x), x)
+  t(sapply(seq_len(n + 1), function(i, x) legendre_list[[i]](x), x))
 }

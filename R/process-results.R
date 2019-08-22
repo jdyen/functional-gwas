@@ -1,20 +1,21 @@
 # add post-processing of results
 
-# convergence checks
+### convergence checks
+
+# plot chains
+bayesplot::mcmc_trace(draws, pars = "beta_dominant[1,1]")
+
+### posterior summaries
 
 
-# posterior summaries
+### check (co)variances and associated parameters
 
 
-# calculate model fit
+### calculate model fit
 
 
-# kmeans clustering to identify included/excluded SNPs
+### identify included/excluded SNPs (balance swamping vs masking)
 # use kmeans function
 
 
-# create plots (or outputs to be used to create plots)
-
-
-# check (co)variances and associated parameters
-
+### create plots (or outputs to be used to create plots)
