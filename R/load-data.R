@@ -4,6 +4,9 @@ setwd("~/Dropbox/research/functional-gwas/")
 # load packages
 library(lubridate)
 
+# we need some helpers
+source("R/utils.R")
+
 # load raw data sets
 age_data <- read.csv("data/raw/GP_2018_covariates_wAgeData_updated_wsibgroups_qvalues_inddiv_approx_coords191018.csv",
                      stringsAsFactors = FALSE,
@@ -44,8 +47,24 @@ covariate_data <- covariate_data[to_keep, ]
 genetic_data <- genetic_data[to_keep, ]
 snp_data <- snp_data[to_keep, ]
 
+# remove individuals with no increment measurements
+to_keep <- apply(growth_data, 1, function(x) sum(!is.na(x)) > 1)
+growth_data <- growth_data[to_keep, ]
+covariate_data <- covariate_data[to_keep, ]
+genetic_data <- genetic_data[to_keep, ]
+snp_data <- snp_data[to_keep, ]
+
+# add some growth statistics as scalar phenotypes
+###  COULD INCLUDE: age-at-maturity, params from VB curve, etc.
+growth_stats <- data.frame(ave_growth = apply(growth_data, 1,
+                                              function(x) mean(diff_with_first(x), na.rm = TRUE)),
+                           max_growth = apply(growth_data, 1,
+                                              function(x) max(diff_with_first(x), na.rm = TRUE)),
+                           max_size = apply(growth_data, 1, max, na.rm = TRUE))
+
 # write output files
 write.csv(growth_data, file = "data/compiled/gp_fgwas_pheno.csv", row.names = FALSE)
+write.csv(growth_stats, file = "data/compiled/gp_fgwas_scalar_pheno.csv", row.names = FALSE)
 write.csv(snp_data, file = "data/compiled/gp_fgwas_snps.csv", row.names = FALSE)
 write.csv(covariate_data, file = "data/compiled/gp_fgwas_covariates.csv", row.names = FALSE)
 write.csv(genetic_data, file = "data/compiled/gp_fgwas_genetics.csv", row.names = FALSE)
