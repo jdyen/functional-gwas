@@ -81,3 +81,32 @@ legendre_list <- list(function(x) rep(1, length(x)),
 legendre_poly <- function(n, x) {
   t(sapply(seq_len(n + 1), function(i, x) legendre_list[[i]](x), x))
 }
+
+# calculate 2-means clusters sequentially to reduce masking errors
+sequential_m2 <- function(x, max_iter = 100) {
+  
+  out <- kmeans(abs(x), centers = 2)
+  cluster_means <- out$centers
+  small_m <- which.min(cluster_means)
+  big_m <- which.max(cluster_means)
+  d_set <- out$cluster == small_m
+  
+  n_try <- 0
+  while((cluster_means[big_m] - cluster_means[small_m]) > delta & n_try < max_iter) {
+    
+    n_try <- n_try + 1
+    x <- x[d_set]
+    tmp <- kmeans(abs(x), centers = 2)
+    cluster_means <- tmp$centers
+    small_m <- which.min(cluster_means)
+    big_m <- which.max(cluster_means)
+    d_set <- tmp$cluster == small_m
+    
+    if (n_try == max_iter)
+      warning(paste0("sequential m2 clustering stopped after ", max_iter, " iterations"), call. = FALSE)
+    
+  }
+  
+  ncol(additive) - sum(d_set)
+  
+}
