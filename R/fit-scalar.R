@@ -16,7 +16,7 @@ covariate_data <- read.csv("data/compiled/gp_fgwas_covariates.csv", stringsAsFac
 genetic_data <- read.csv("data/compiled/gp_fgwas_genetics.csv", stringsAsFactors = FALSE)
 
 # subset SNP data while testing
-snp_data <- snp_data[, seq_len(100)]
+snp_data <- snp_data[, seq_len(20)]
 
 # snp_data as a matrix will make distance calcs faster
 snp_data <- as.matrix(snp_data)
@@ -87,7 +87,7 @@ mod <- model(beta_additive, beta_dominant)
 
 # give mcmc settings
 chains <- 4
-n_samples <- 1000
+n_samples <- 20000
 warmup <- n_samples
 
 # set some random initial values
@@ -95,9 +95,16 @@ inits <- lapply(seq_len(chains),
                 function(i) initials(beta_additive = rnorm(n_snp),
                                      beta_dominant = rnorm(n_snp)))
 
+## sigmas probably have low variance, can we add that to the diag_sd term
+##   in the hmc sampler? Want to rescale these so they sample more efficiently
+
 # sample from model
 draws <- mcmc(mod,
+              sampler = hmc(Lmin = 5, Lmax = 100, epsilon = 0.1),
               n_samples = n_samples,
               warmup = warmup,
               chains = chains,
               initial_values = inits)
+
+# save fitted
+saveRDS(draws, file = paste0("outputs/sgwas_draws_", format(Sys.time(), "%Y%m%d_%H%M"), ".rds"))

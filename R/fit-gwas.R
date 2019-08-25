@@ -127,3 +127,6 @@ draws <- mcmc(mod,
               warmup = warmup,
               chains = chains,
               initial_values = inits)
+
+# save fitted
+
