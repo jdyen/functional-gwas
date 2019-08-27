@@ -1,7 +1,7 @@
 ## Genome-wide association studies for function-valued data  
 This README is for the R project functional-gwas, which aims to develop software for GWAS analysis where the trait of interest is a function-valued object.
 
-Copyright &copy; 2017, Jian Yen
+Copyright &copy; 2019, Jian Yen
 
 *****
 
@@ -10,7 +10,7 @@ Bayesian hierarchical models to identify genomic variants linked to ontogenetic 
 
 Maintainer: Jian Yen (jdl.yen@gmail.com)
 
-Updated: 15 August 2017
+Updated: 27 August 2019
 
 ## Installation
 
