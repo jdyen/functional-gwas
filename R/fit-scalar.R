@@ -87,7 +87,7 @@ mod <- model(beta_additive, beta_dominant)
 
 # give mcmc settings
 chains <- 4
-n_samples <- 20000
+n_samples <- 1000
 warmup <- n_samples
 
 # set some random initial values
@@ -95,12 +95,9 @@ inits <- lapply(seq_len(chains),
                 function(i) initials(beta_additive = rnorm(n_snp),
                                      beta_dominant = rnorm(n_snp)))
 
-## sigmas probably have low variance, can we add that to the diag_sd term
-##   in the hmc sampler? Want to rescale these so they sample more efficiently
-
 # sample from model
 draws <- mcmc(mod,
-              sampler = hmc(Lmin = 5, Lmax = 100, epsilon = 0.1),
+              sampler = hmc(Lmin = 5, Lmax = 100, epsilon = 0.1, diag_sd = 1),
               n_samples = n_samples,
               warmup = warmup,
               chains = chains,
